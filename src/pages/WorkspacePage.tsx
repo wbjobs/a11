@@ -94,11 +94,30 @@ export default function WorkspacePage() {
     navigate('/');
   }, [stopCapture, stopCamera, leaveRoom, navigate]);
 
-  const handleAddAnnotation = useCallback((annotation: Annotation) => {
+  const handleAddAnnotation = useCallback((annotationData: Partial<Annotation>) => {
+    if (!currentUser || !roomId || !currentPointCloud) return;
+
+    const now = Date.now();
+    const annotation: Annotation = {
+      annotationId: `ann_${now}_${Math.random().toString(36).substr(2, 9)}`,
+      roomId: roomId,
+      userId: currentUser.userId,
+      userName: currentUser.name,
+      pointCloudVersionId: annotationData.pointCloudVersionId || currentPointCloud.versionId,
+      type: annotationData.type || 'sphere',
+      position: annotationData.position || [0, 0, 0],
+      direction: annotationData.direction,
+      color: annotationData.color || '#ff5500',
+      size: annotationData.size || 0.5,
+      text: annotationData.text,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     addAnnotation(annotation);
     webSocketService.send('annotation_add', annotation);
     indexedDBService.saveAnnotation(annotation);
-  }, [addAnnotation]);
+  }, [addAnnotation, currentUser, roomId, currentPointCloud]);
 
   const handleUpdateAnnotation = useCallback((annotation: Annotation) => {
     updateAnnotation(annotation);

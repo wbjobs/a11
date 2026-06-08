@@ -134,9 +134,12 @@ export default function PointCloud({
         vertexColors
         sizeAttenuation
         transparent
-        opacity={0.9}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        opacity={0.95}
+        depthWrite={true}
+        depthTest={true}
+        polygonOffset={true}
+        polygonOffsetFactor={-1}
+        polygonOffsetUnits={-1}
       />
     </points>
   );

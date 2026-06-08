@@ -36,7 +36,13 @@ function SceneContent({
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[5, 5, 5]} fov={60} />
+      <PerspectiveCamera 
+        makeDefault 
+        position={[5, 5, 5]} 
+        fov={60}
+        near={0.1}
+        far={50}
+      />
       <OrbitControls
         ref={controlsRef}
         enableDamping
@@ -44,7 +50,7 @@ function SceneContent({
         autoRotate={autoRotate}
         autoRotateSpeed={0.5}
         minDistance={0.5}
-        maxDistance={100}
+        maxDistance={50}
       />
 
       <fog attach="fog" args={['#0a0a1a', 10, 50]} />
@@ -56,7 +62,7 @@ function SceneContent({
 
       {showAxes && <axesHelper args={[3]} />}
       {showGrid && (
-        <gridHelper args={[20, 20, '#333344', '#222233']} position={[0, -0.01, 0]} />
+        <gridHelper args={[20, 20, '#333344', '#222233']} position={[0, -0.5, 0]} />
       )}
 
       {loading ? (
@@ -99,7 +105,16 @@ export function PointCloudScene({ pointCloud, loading, children }: PointCloudSce
 
   return (
     <div className="relative w-full h-full">
-      <Canvas shadows dpr={[1, 2]} gl={{ antialias: true, alpha: false }}>
+      <Canvas 
+        shadows 
+        dpr={[1, 2]} 
+        gl={{ 
+          antialias: true, 
+          alpha: false,
+          logarithmicDepthBuffer: true,
+          powerPreference: 'high-performance',
+        }}
+      >
         <SceneContent
           pointCloud={pointCloud}
           loading={loading}

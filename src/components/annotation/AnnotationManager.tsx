@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ArrowAnnotation } from './ArrowAnnotation';
@@ -23,6 +23,13 @@ export function AnnotationManager({ annotations, selectedAnnotationId, selectedT
   const currentUser = useAppStore((state) => state.currentUser);
   const currentPointCloud = useAppStore((state) => state.currentPointCloud);
 
+  const filteredAnnotations = useMemo(() => {
+    if (!currentPointCloud) return [];
+    return annotations.filter(
+      (ann) => ann.pointCloudVersionId === currentPointCloud.versionId
+    );
+  }, [annotations, currentPointCloud]);
+
   const handleAnnotationClick = useCallback((annotationId: string) => {
     selectAnnotation(annotationId === selectedAnnotationId ? null : annotationId);
   }, [selectedAnnotationId, selectAnnotation]);
@@ -45,18 +52,27 @@ export function AnnotationManager({ annotations, selectedAnnotationId, selectedT
     if (!annotationType || !onAddAnnotation || !currentUser || !currentPointCloud) return;
 
     raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(scene.children, true);
+    
+    const pointCloudObjects = scene.children.filter(
+      (obj) => obj instanceof THREE.Points || (obj as any).isPointCloud
+    );
+    
+    const intersects = raycaster.intersectObjects(pointCloudObjects, true);
 
     if (intersects.length > 0) {
       const point = intersects[0].point;
-      const position: [number, number, number] = [point.x, point.y, point.z];
+      const position: [number, number, number] = [
+        Math.round(point.x * 10000) / 10000,
+        Math.round(point.y * 10000) / 10000,
+        Math.round(point.z * 10000) / 10000,
+      ];
 
       const cameraDirection = new THREE.Vector3();
       camera.getWorldDirection(cameraDirection);
       const direction: [number, number, number] = [
-        cameraDirection.x,
-        cameraDirection.y,
-        cameraDirection.z,
+        Math.round(cameraDirection.x * 10000) / 10000,
+        Math.round(cameraDirection.y * 10000) / 10000,
+        Math.round(cameraDirection.z * 10000) / 10000,
       ];
 
       onAddAnnotation({
@@ -66,6 +82,7 @@ export function AnnotationManager({ annotations, selectedAnnotationId, selectedT
         color: '#ff5500',
         size: 0.5,
         text: annotationType === 'text' ? '新标注' : undefined,
+        pointCloudVersionId: currentPointCloud.versionId,
       });
     }
   }, [selectedTool, onAddAnnotation, currentUser, currentPointCloud, raycaster, pointer, camera, scene]);
@@ -117,7 +134,7 @@ export function AnnotationManager({ annotations, selectedAnnotationId, selectedT
 
   return (
     <group ref={groupRef} onClick={handleSceneClick}>
-      {annotations.map(renderAnnotation)}
+      {filteredAnnotations.map(renderAnnotation)}
     </group>
   );
 }
