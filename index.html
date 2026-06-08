@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PointCloud Studio - 实时点云重建与协作标注系统</title>
+    <script>
+      window.global = window;
+      window.process = {
+        env: {},
+        browser: true,
+        version: '',
+        versions: {}
+      };
+      window.Buffer = {
+        isBuffer: () => false,
+        from: (data) => new Uint8Array(data),
+        alloc: (size) => new Uint8Array(size),
+        allocUnsafe: (size) => new Uint8Array(size),
+        concat: (arrays) => {
+          const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0);
+          const result = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const arr of arrays) {
+            result.set(arr, offset);
+            offset += arr.length;
+          }
+          return result;
+        }
+      };
+      if (!window.crypto) {
+        window.crypto = window.msCrypto;
+      }
+    </script>
+    <script type="module">
+      if (import.meta.hot?.on) {
+        import.meta.hot.on('vite:error', (error) => {
+          if (error.err) {
+            console.error(
+              [error.err.message, error.err.frame].filter(Boolean).join('\n'),
+            )
+          }
+        })
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
